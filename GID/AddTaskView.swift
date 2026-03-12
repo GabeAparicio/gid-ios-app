@@ -133,7 +133,7 @@ struct AddTaskView: View {
                 .padding(.bottom, 20)
                 
                 Text("GID!")
-                    .font(.system(size: 18, weight: .black, design: .rounded))
+                    .font(.custom("BlackOpsOne-Regular", size: 18))
                     .foregroundColor(.white.opacity(0.75))
                     .padding(.bottom, 16)
             }

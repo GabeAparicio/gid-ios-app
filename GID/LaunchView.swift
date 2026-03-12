@@ -21,7 +21,7 @@ struct LaunchView: View {
                 Spacer()
                 
                 Text("GID!")
-                    .font(.system(size: 72, weight: .black, design: .rounded))
+                    .font(.custom("BlackOpsOne-Regular", size: 72))
                     .foregroundColor(.white)
                 
                 Text("GET IT DONE!")
