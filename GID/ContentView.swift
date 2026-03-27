@@ -6,7 +6,20 @@ struct ContentView: View {
     @Binding var selectedScreen: AppScreen
     @ObservedObject var appData: AppData
     
-    let columns = [GridItem(), GridItem()]
+    @State private var expandedTaskID: UUID? = nil
+    
+    var sortedTaskIndices: [Int] {
+        appData.tasks.indices.sorted { first, second in
+            let firstTask = appData.tasks[first]
+            let secondTask = appData.tasks[second]
+            
+            if firstTask.completed == secondTask.completed {
+                return firstTask.title < secondTask.title
+            }
+            
+            return !firstTask.completed && secondTask.completed
+        }
+    }
     
     var body: some View {
         
@@ -45,22 +58,98 @@ struct ContentView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 10)
                 
-                Spacer()
-                
-                LazyVGrid(columns: columns, spacing: 28) {
-                    ForEach(appData.tasks) { task in
-                        Button(action: {
-                            appData.selectedTask = task
-                            selectedScreen = .taskDetails
-                        }) {
-                            TaskCard(task: task)
+                ScrollView {
+                    VStack(spacing: 18) {
+                        
+                        ForEach(sortedTaskIndices, id: \.self) { index in
+                            let task = appData.tasks[index]
+                            
+                            VStack(spacing: 0) {
+                                
+                                Button(action: {
+                                    withAnimation(.easeInOut) {
+                                        if expandedTaskID == task.id {
+                                            expandedTaskID = nil
+                                        } else {
+                                            expandedTaskID = task.id
+                                        }
+                                    }
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Text(task.title.uppercased())
+                                                .font(.system(size: 18, weight: .bold))
+                                                .foregroundColor(task.completed ? .gray : .black)
+                                                .strikethrough(task.completed)
+                                            
+                                            Text("Due: \(task.dueDate)")
+                                                .font(.system(size: 13, weight: .medium))
+                                                .foregroundColor(.black.opacity(0.75))
+                                            
+                                            Text("Priority: \(task.priority)")
+                                                .font(.system(size: 13, weight: .medium))
+                                                .foregroundColor(.black.opacity(0.75))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        VStack(spacing: 10) {
+                                            Image(systemName: task.completed ? "checkmark.circle.fill" : "circle")
+                                                .font(.title2)
+                                                .foregroundColor(task.completed ? .green : .gray)
+                                            
+                                            Image(systemName: expandedTaskID == task.id ? "chevron.up" : "chevron.down")
+                                                .font(.caption)
+                                                .foregroundColor(.black.opacity(0.6))
+                                        }
+                                    }
+                                    .padding()
+                                    .background(Color.white.opacity(0.95))
+                                    .cornerRadius(20)
+                                    .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+                                }
+                                .buttonStyle(PressableButtonStyle())
+                                
+                                if expandedTaskID == task.id {
+                                    VStack(alignment: .leading, spacing: 14) {
+                                        
+                                        Text("Description")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                        
+                                        Text(task.description)
+                                            .font(.system(size: 15, weight: .medium))
+                                            .foregroundColor(.black)
+                                        
+                                        Button(action: {
+                                            withAnimation {
+                                                appData.tasks[index].completed.toggle()
+                                            }
+                                        }) {
+                                            HStack {
+                                                Image(systemName: appData.tasks[index].completed ? "checkmark.circle.fill" : "checkmark.circle")
+                                                
+                                                Text(appData.tasks[index].completed ? "MARK AS INCOMPLETE" : "MARK AS COMPLETE")
+                                                    .font(.system(size: 15, weight: .bold))
+                                            }
+                                            .foregroundColor(.black)
+                                            .padding(.horizontal, 18)
+                                            .padding(.vertical, 10)
+                                        }
+                                        .buttonStyle(PressableButtonStyle())
+                                    }
+                                    .padding(18)
+                                    .background(Color.white.opacity(0.97))
+                                    .cornerRadius(18)
+                                    .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+                                    .padding(.top, 10)
+                                }
+                            }
                         }
-                        .buttonStyle(PressableButtonStyle())
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
                 }
-                .padding(.horizontal, 24)
-                
-                Spacer()
                 
                 Text("GID!")
                     .font(.custom("BlackOpsOne-Regular", size: 18))
@@ -69,61 +158,4 @@ struct ContentView: View {
             }
         }
     }
-}
-
-struct TaskCard: View {
-    
-    var task: Task
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Text(task.title)
-                .font(.system(size: 15, weight: .bold))
-                .multilineTextAlignment(.center)
-                .foregroundColor(.black)
-            
-            Text("Due: \(task.dueDate)")
-                .font(.system(size: 12, weight: .regular))
-                .foregroundColor(.black.opacity(0.85))
-            
-            Text("Priority: \(task.priority)")
-                .font(.system(size: 12, weight: .regular))
-                .foregroundColor(.black.opacity(0.85))
-        }
-        .frame(width: 145, height: 112)
-        .background(Color.white.opacity(0.95))
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
-    }
-}
-
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let r, g, b: UInt64
-        switch hex.count {
-        case 6:
-            (r, g, b) = (int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (r, g, b) = (255, 255, 255)
-        }
-        
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: 1
-        )
-    }
-}
-
-#Preview {
-    ContentView(
-        showMenu: .constant(false),
-        selectedScreen: .constant(.home),
-        appData: AppData()
-    )
 }

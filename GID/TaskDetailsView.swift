@@ -6,11 +6,8 @@ struct TaskDetailsView: View {
     @Binding var selectedScreen: AppScreen
     @ObservedObject var appData: AppData
     
-    @State private var editMode = false
-    @State private var editTitle = ""
-    @State private var editDescription = ""
-    @State private var editDueDate = ""
-    @State private var editPriority = ""
+    @State private var expandedTaskID: UUID? = nil
+    @State private var editingTask: Task? = nil
     
     var body: some View {
         
@@ -49,100 +46,66 @@ struct TaskDetailsView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 10)
                 
-                Spacer()
-                
-                if let task = appData.selectedTask {
-                    VStack(alignment: .leading, spacing: 16) {
+                ScrollView {
+                    VStack(spacing: 16) {
                         
-                        if editMode {
-                            TextField("TITLE", text: $editTitle)
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.black)
+                        ForEach(appData.tasks) { task in
                             
-                            TextField("DESCRIPTION", text: $editDescription)
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.black)
-                            
-                            TextField("DUE DATE", text: $editDueDate)
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.black)
-                            
-                            TextField("PRIORITY", text: $editPriority)
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.black)
-                        } else {
-                            Text(task.title.uppercased())
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.black)
-                            
-                            Text("DESCRIPTION: \(task.description.uppercased())")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.black)
-                            
-                            Text("DUE DATE: \(task.dueDate.uppercased())")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.black)
-                            
-                            Text("PRIORITY: \(task.priority.uppercased())")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.black)
-                        }
-                        
-                        HStack(spacing: 16) {
-                            Button(action: {
-                                if editMode {
-                                    if let index = appData.tasks.firstIndex(where: { $0.id == task.id }) {
-                                        appData.tasks[index].title = editTitle
-                                        appData.tasks[index].description = editDescription
-                                        appData.tasks[index].dueDate = editDueDate
-                                        appData.tasks[index].priority = editPriority
-                                        appData.selectedTask = appData.tasks[index]
+                            VStack(spacing: 0) {
+                                
+                                Button(action: {
+                                    withAnimation {
+                                        expandedTaskID = (expandedTaskID == task.id ? nil : task.id)
                                     }
-                                    editMode = false
-                                } else {
-                                    editTitle = task.title
-                                    editDescription = task.description
-                                    editDueDate = task.dueDate
-                                    editPriority = task.priority
-                                    editMode = true
+                                }) {
+                                    HStack {
+                                        Text(task.title.uppercased())
+                                            .font(.system(size: 18, weight: .bold))
+                                            .foregroundColor(.black)
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: expandedTaskID == task.id ? "chevron.up" : "chevron.down")
+                                            .foregroundColor(.black.opacity(0.7))
+                                    }
+                                    .padding()
+                                    .background(Color.white.opacity(0.95))
+                                    .cornerRadius(18)
                                 }
-                            }) {
-                                Text(editMode ? "SAVE EDIT" : "EDIT TASK")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.black)
-                                    .padding(.horizontal, 18)
-                                    .padding(.vertical, 10)
-                                    .cornerRadius(16)
+                                .buttonStyle(PressableButtonStyle())
+                                
+                                if expandedTaskID == task.id {
+                                    VStack(alignment: .leading, spacing: 14) {
+                                        
+                                        Text("Description")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                        
+                                        Text(task.description)
+                                        
+                                        Text("Due: \(task.dueDate)")
+                                        Text("Priority: \(task.priority)")
+                                        
+                                        HStack {
+                                            Button("EDIT TASK") {
+                                                editingTask = task
+                                            }
+                                            
+                                            Button("DELETE TASK") {
+                                                deleteTask(task)
+                                            }
+                                        }
+                                    }
+                                    .padding()
+                                    .background(Color.white.opacity(0.97))
+                                    .cornerRadius(18)
+                                    .padding(.top, 8)
+                                }
                             }
-                            .buttonStyle(PressableButtonStyle())
-                            
-                            Button(action: {
-                                appData.tasks.removeAll { $0.id == task.id }
-                                appData.selectedTask = nil
-                                selectedScreen = .home
-                            }) {
-                                Text("DELETE TASK")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.black)
-                                    .padding(.horizontal, 18)
-                                    .padding(.vertical, 10)
-                                    .cornerRadius(16)
-                            }
-                            .buttonStyle(PressableButtonStyle())
                         }
-                        .padding(.top, 8)
                     }
-                    .padding(24)
-                    .background(Color.white.opacity(0.95))
-                    .cornerRadius(20)
-                    .padding(.horizontal, 28)
-                } else {
-                    Text("NO TASK SELECTED")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.white)
+                    .padding(.horizontal, 24)
                 }
-                
-                Spacer()
                 
                 Text("GID!")
                     .font(.custom("BlackOpsOne-Regular", size: 18))
@@ -150,13 +113,16 @@ struct TaskDetailsView: View {
                     .padding(.bottom, 16)
             }
         }
+        .sheet(item: $editingTask) { task in
+            EditTaskSheet(task: task, appData: appData)
+        }
     }
-}
-
-#Preview {
-    TaskDetailsView(
-        showMenu: .constant(false),
-        selectedScreen: .constant(.taskDetails),
-        appData: AppData()
-    )
+    
+    private func deleteTask(_ task: Task) {
+        appData.tasks.removeAll { $0.id == task.id }
+        
+        if expandedTaskID == task.id {
+            expandedTaskID = nil
+        }
+    }
 }

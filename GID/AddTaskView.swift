@@ -1,3 +1,8 @@
+//TODO: Swiping functionality
+//      Time select increments of 5?
+//      Selecting priority instead of typing it in
+
+
 import SwiftUI
 
 struct AddTaskView: View {
@@ -8,8 +13,12 @@ struct AddTaskView: View {
     
     @State private var taskTitle = ""
     @State private var taskDescription = ""
-    @State private var dueDate = ""
+    @State private var selectedDueDate = Date()
     @State private var priority = ""
+    
+    private var formattedDueDate: String {
+        selectedDueDate.formatted(date: .abbreviated, time: .shortened)
+    }
     
     var body: some View {
         
@@ -81,11 +90,15 @@ struct AddTaskView: View {
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.black)
                         
-                        TextField("SELECT DATE", text: $dueDate)
-                            .textFieldStyle(.plain)
-                            .padding()
-                            .background(Color.white.opacity(0.95))
-                            .cornerRadius(12)
+                        DatePicker(
+                            "SELECT DATE",
+                            selection: $selectedDueDate,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                        .padding()
+                        .background(Color.white.opacity(0.95))
+                        .cornerRadius(12)
+                        .accentColor(.black)
                     }
                     
                     Group {
@@ -108,7 +121,7 @@ struct AddTaskView: View {
                     let newTask = Task(
                         title: taskTitle,
                         description: taskDescription,
-                        dueDate: dueDate,
+                        dueDate: formattedDueDate,
                         priority: priority
                     )
                     
@@ -117,7 +130,7 @@ struct AddTaskView: View {
                     
                     taskTitle = ""
                     taskDescription = ""
-                    dueDate = ""
+                    selectedDueDate = Date()
                     priority = ""
                     
                     selectedScreen = .home
@@ -127,9 +140,8 @@ struct AddTaskView: View {
                         .foregroundColor(.black)
                         .padding(.horizontal, 28)
                         .padding(.vertical, 12)
-                        }
+                }
                 .buttonStyle(PressableButtonStyle())
-                
                 .padding(.bottom, 20)
                 
                 Text("GID!")
