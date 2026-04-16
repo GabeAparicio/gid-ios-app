@@ -25,6 +25,7 @@ struct TaskDetailsView: View {
             
             VStack {
                 
+            
                 ZStack {
                     HStack {
                         Button(action: {
@@ -36,7 +37,19 @@ struct TaskDetailsView: View {
                                 .font(.title3)
                                 .foregroundColor(.white)
                         }
+                        
                         Spacer()
+                        
+                
+                        Button(action: {
+                            withAnimation {
+                                showMenu.toggle()
+                            }
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .font(.title3)
+                                .foregroundColor(.white)
+                        }
                     }
                     
                     Text("TASK DETAILS")
