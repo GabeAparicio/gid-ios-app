@@ -9,10 +9,23 @@ struct AddTaskView: View {
     @State private var taskTitle = ""
     @State private var taskDescription = ""
     @State private var selectedDueDate = Date()
-    @State private var priority = ""
+    @State private var firstReminderDate = Date()
+    @State private var secondReminderDate = Date()
+    @State private var priority = "Medium"
+    
+    @State private var showValidationAlert = false
+    @State private var validationMessage = ""
     
     private var formattedDueDate: String {
         selectedDueDate.formatted(date: .abbreviated, time: .shortened)
+    }
+    
+    private var formattedFirstReminder: String {
+        firstReminderDate.formatted(date: .abbreviated, time: .shortened)
+    }
+    
+    private var formattedSecondReminder: String {
+        secondReminderDate.formatted(date: .abbreviated, time: .shortened)
     }
     
     var body: some View {
@@ -33,7 +46,7 @@ struct AddTaskView: View {
                 
                 ZStack {
                     HStack {
-            
+                        
                         Button(action: {
                             withAnimation {
                                 showMenu.toggle()
@@ -46,10 +59,10 @@ struct AddTaskView: View {
                         
                         Spacer()
                         
-                
                         Button(action: {
                             withAnimation {
-                                showMenu.toggle()
+                                showMenu = false
+                                selectedScreen = .home
                             }
                         }) {
                             Image(systemName: "chevron.left")
@@ -65,86 +78,103 @@ struct AddTaskView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 10)
                 
-                Spacer()
-                
-                VStack(alignment: .leading, spacing: 18) {
-                    
-                    Group {
-                        Text("TASK TITLE")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.black)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
                         
-                        TextField("ENTER TASK NAME", text: $taskTitle)
-                            .textFieldStyle(.plain)
+                        Group {
+                            Text("TASK TITLE")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.black)
+                            
+                            TextField("ENTER TASK NAME", text: $taskTitle)
+                                .textFieldStyle(.plain)
+                                .padding()
+                                .background(Color.white.opacity(0.95))
+                                .cornerRadius(12)
+                        }
+                        
+                        Group {
+                            Text("DESCRIPTION")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.black)
+                            
+                            TextField("ENTER DESCRIPTION", text: $taskDescription)
+                                .textFieldStyle(.plain)
+                                .padding()
+                                .background(Color.white.opacity(0.95))
+                                .cornerRadius(12)
+                        }
+                        
+                        Group {
+                            Text("DUE DATE")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.black)
+                            
+                            DatePicker(
+                                "SELECT DATE",
+                                selection: $selectedDueDate,
+                                displayedComponents: [.date, .hourAndMinute]
+                            )
                             .padding()
                             .background(Color.white.opacity(0.95))
                             .cornerRadius(12)
-                    }
-                    
-                    Group {
-                        Text("DESCRIPTION")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.black)
+                            .accentColor(.black)
+                        }
                         
-                        TextField("ENTER DESCRIPTION", text: $taskDescription)
-                            .textFieldStyle(.plain)
+                        Group {
+                            Text("FIRST REMINDER")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.black)
+                            
+                            DatePicker(
+                                "SELECT FIRST REMINDER",
+                                selection: $firstReminderDate,
+                                displayedComponents: [.date, .hourAndMinute]
+                            )
                             .padding()
                             .background(Color.white.opacity(0.95))
                             .cornerRadius(12)
-                    }
-                    
-                    Group {
-                        Text("DUE DATE")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.black)
+                            .accentColor(.black)
+                        }
                         
-                        DatePicker(
-                            "SELECT DATE",
-                            selection: $selectedDueDate,
-                            displayedComponents: [.date, .hourAndMinute]
-                        )
-                        .padding()
-                        .background(Color.white.opacity(0.95))
-                        .cornerRadius(12)
-                        .accentColor(.black)
-                    }
-                    
-                    Group {
-                        Text("PRIORITY")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.black)
-                        
-                        TextField("LOW, MEDIUM, HIGH", text: $priority)
-                            .textFieldStyle(.plain)
+                        Group {
+                            Text("SECOND REMINDER")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.black)
+                            
+                            DatePicker(
+                                "SELECT SECOND REMINDER",
+                                selection: $secondReminderDate,
+                                displayedComponents: [.date, .hourAndMinute]
+                            )
                             .padding()
                             .background(Color.white.opacity(0.95))
                             .cornerRadius(12)
+                            .accentColor(.black)
+                        }
+                        
+                        Group {
+                            Text("PRIORITY")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.black)
+                            
+                            Picker("Select Priority", selection: $priority) {
+                                Text("Low").tag("Low")
+                                Text("Medium").tag("Medium")
+                                Text("High").tag("High")
+                            }
+                            .pickerStyle(.segmented)
+                            .padding()
+                            .background(Color.white.opacity(0.95))
+                            .cornerRadius(12)
+                        }
                     }
+                    .padding(.horizontal, 28)
+                    .padding(.top, 24)
                 }
-                .padding(.horizontal, 28)
-                
-                Spacer()
                 
                 Button(action: {
-                    let newTask = Task(
-                        title: taskTitle,
-                        description: taskDescription,
-                        dueDate: formattedDueDate,
-                        priority: priority
-                    )
-                    
-                    appData.tasks.append(newTask)
-                    appData.selectedTask = newTask
-                    
-                    NotificationManager.shared.scheduleTaskAddedNotification(taskTitle: taskTitle)
-                    NotificationManager.shared.scheduleDueReminderNotification(taskTitle: taskTitle, dueDate: selectedDueDate)
-                    
-                    taskTitle = ""
-                    taskDescription = ""
-                    selectedDueDate = Date()
-                    priority = ""
-                    
-                    selectedScreen = .home
+                    saveTask()
                 }) {
                     Text("SAVE TASK")
                         .font(.system(size: 18, weight: .bold))
@@ -161,6 +191,82 @@ struct AddTaskView: View {
                     .padding(.bottom, 16)
             }
         }
+        .alert("Invalid Task Data", isPresented: $showValidationAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(validationMessage)
+        }
+    }
+    
+    private func saveTask() {
+        let trimmedTitle = taskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedDescription = taskDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPriority = priority.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !trimmedTitle.isEmpty else {
+            validationMessage = "Please enter a task title."
+            showValidationAlert = true
+            return
+        }
+        
+        guard !trimmedDescription.isEmpty else {
+            validationMessage = "Please enter a task description."
+            showValidationAlert = true
+            return
+        }
+        
+        guard firstReminderDate < selectedDueDate else {
+            validationMessage = "The first reminder must be before the due date."
+            showValidationAlert = true
+            return
+        }
+        
+        guard secondReminderDate < selectedDueDate else {
+            validationMessage = "The second reminder must be before the due date."
+            showValidationAlert = true
+            return
+        }
+        
+        guard firstReminderDate <= secondReminderDate else {
+            validationMessage = "The first reminder should be earlier than or equal to the second reminder."
+            showValidationAlert = true
+            return
+        }
+        
+        let newTask = Task(
+            title: trimmedTitle,
+            description: trimmedDescription,
+            dueDate: formattedDueDate,
+            priority: trimmedPriority,
+            firstReminder: formattedFirstReminder,
+            secondReminder: formattedSecondReminder
+        )
+        
+        appData.tasks.append(newTask)
+        appData.selectedTask = newTask
+        
+        NotificationManager.shared.scheduleTaskAddedNotification(taskTitle: trimmedTitle)
+        
+        NotificationManager.shared.scheduleReminderNotification(
+            taskTitle: trimmedTitle,
+            reminderDate: firstReminderDate,
+            reminderLabel: "First Reminder"
+        )
+        
+        NotificationManager.shared.scheduleReminderNotification(
+            taskTitle: trimmedTitle,
+            reminderDate: secondReminderDate,
+            reminderLabel: "Second Reminder"
+        )
+        
+        taskTitle = ""
+        taskDescription = ""
+        selectedDueDate = Date()
+        firstReminderDate = Date()
+        secondReminderDate = Date()
+        priority = "Medium"
+        
+        selectedScreen = .home
     }
 }
 

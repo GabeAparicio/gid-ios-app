@@ -1,12 +1,14 @@
 import Foundation
 
-struct Task: Identifiable, Equatable {
+struct Task: Identifiable, Equatable, Codable {
     let id: UUID
     var title: String
     var description: String
     var dueDate: String
     var priority: String
     var completed: Bool
+    var firstReminder: String
+    var secondReminder: String
     
     init(
         id: UUID = UUID(),
@@ -14,7 +16,9 @@ struct Task: Identifiable, Equatable {
         description: String,
         dueDate: String,
         priority: String,
-        completed: Bool = false
+        completed: Bool = false,
+        firstReminder: String = "",
+        secondReminder: String = ""
     ) {
         self.id = id
         self.title = title
@@ -22,5 +26,7 @@ struct Task: Identifiable, Equatable {
         self.dueDate = dueDate
         self.priority = priority
         self.completed = completed
+        self.firstReminder = firstReminder
+        self.secondReminder = secondReminder
     }
 }

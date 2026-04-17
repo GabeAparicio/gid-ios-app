@@ -46,26 +46,17 @@ class NotificationManager {
         UNUserNotificationCenter.current().add(request)
     }
     
-    func scheduleDueReminderNotification(taskTitle: String, dueDate: Date) {
+    func scheduleReminderNotification(taskTitle: String, reminderDate: Date, reminderLabel: String) {
         let now = Date()
-        if dueDate <= now { return }
+        if reminderDate <= now { return }
         
         let content = UNMutableNotificationContent()
-        content.title = "Task Reminder"
-        
-        let calendar = Calendar.current
-        if calendar.isDateInToday(dueDate) {
-            content.body = "Your task \"\(taskTitle)\" is due today."
-        } else {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .short
-            content.body = "Reminder: \"\(taskTitle)\" is due on \(formatter.string(from: dueDate))."
-        }
-        
+        content.title = reminderLabel
+        content.body = "Reminder: \"\(taskTitle)\" is coming up."
         content.sound = .default
         
-        let triggerDate = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)
+        let calendar = Calendar.current
+        let triggerDate = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: reminderDate)
         let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
         
         let request = UNNotificationRequest(

@@ -25,7 +25,6 @@ struct TaskDetailsView: View {
             
             VStack {
                 
-            
                 ZStack {
                     HStack {
                         Button(action: {
@@ -40,10 +39,10 @@ struct TaskDetailsView: View {
                         
                         Spacer()
                         
-                
                         Button(action: {
                             withAnimation {
-                                showMenu.toggle()
+                                showMenu = false
+                                selectedScreen = .home
                             }
                         }) {
                             Image(systemName: "chevron.left")
