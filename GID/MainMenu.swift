@@ -6,6 +6,10 @@ struct MainMenuView: View {
     @State private var selectedScreen: AppScreen = .home
     @StateObject private var appData = AppData()
     
+    @State private var showDueTodayAlert = false
+    @State private var dueTodayTasks: [Task] = []
+    @State private var currentDueTask: Task? = nil
+    
     var body: some View {
         ZStack {
             
@@ -89,6 +93,67 @@ struct MainMenuView: View {
                 }
                 .ignoresSafeArea()
             }
+        }
+        .onAppear {
+            loadDueTodayTasks()
+        }
+        .alert("Task Reminder", isPresented: $showDueTodayAlert) {
+            Button("Mark Complete") {
+                if let task = currentDueTask,
+                   let index = appData.tasks.firstIndex(where: { $0.id == task.id }) {
+                    appData.tasks[index].completed = true
+                }
+                showNextDueTask()
+            }
+            
+            Button("Later", role: .cancel) {
+                showNextDueTask()
+            }
+        } message: {
+            if let task = currentDueTask {
+                Text("\"\(task.title)\" is due today. Mark complete?")
+            }
+        }
+    }
+    
+    private func loadDueTodayTasks() {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        
+        dueTodayTasks = appData.tasks.filter { task in
+            guard !task.completed else { return false }
+            
+            if task.dueDate.lowercased().contains("today") {
+                return true
+            }
+            
+            if let parsedDate = formatter.date(from: task.dueDate) {
+                return calendar.isDateInToday(parsedDate)
+            }
+            
+            return false
+        }
+        
+        if !dueTodayTasks.isEmpty {
+            currentDueTask = dueTodayTasks.removeFirst()
+            showDueTodayAlert = true
+        }
+    }
+    
+    private func showNextDueTask() {
+        showDueTodayAlert = false
+        
+        if !dueTodayTasks.isEmpty {
+            let nextTask = dueTodayTasks.removeFirst()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                currentDueTask = nextTask
+                showDueTodayAlert = true
+            }
+        } else {
+            currentDueTask = nil
         }
     }
 }

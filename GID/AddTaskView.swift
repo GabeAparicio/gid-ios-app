@@ -1,8 +1,3 @@
-//TODO: Swiping functionality
-//      Time select increments of 5?
-//      Selecting priority instead of typing it in
-
-
 import SwiftUI
 
 struct AddTaskView: View {
@@ -38,6 +33,7 @@ struct AddTaskView: View {
                 
                 ZStack {
                     HStack {
+            
                         Button(action: {
                             withAnimation {
                                 showMenu.toggle()
@@ -47,7 +43,19 @@ struct AddTaskView: View {
                                 .font(.title3)
                                 .foregroundColor(.white)
                         }
+                        
                         Spacer()
+                        
+                
+                        Button(action: {
+                            withAnimation {
+                                showMenu.toggle()
+                            }
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .font(.title3)
+                                .foregroundColor(.white)
+                        }
                     }
                     
                     Text("ADD TASK")
@@ -127,6 +135,9 @@ struct AddTaskView: View {
                     
                     appData.tasks.append(newTask)
                     appData.selectedTask = newTask
+                    
+                    NotificationManager.shared.scheduleTaskAddedNotification(taskTitle: taskTitle)
+                    NotificationManager.shared.scheduleDueReminderNotification(taskTitle: taskTitle, dueDate: selectedDueDate)
                     
                     taskTitle = ""
                     taskDescription = ""

@@ -76,6 +76,9 @@ struct EditTaskSheet: View {
         appData.tasks[index].dueDate = formattedDueDate
         appData.tasks[index].priority = priority
         
+        NotificationManager.shared.scheduleTaskUpdatedNotification(taskTitle: title)
+        NotificationManager.shared.scheduleDueReminderNotification(taskTitle: title, dueDate: selectedDueDate)
+        
         dismiss()
     }
 }
