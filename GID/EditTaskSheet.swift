@@ -1,3 +1,15 @@
+//
+//  EditTaskSheet.swift
+//  GID! (Get It Done!)
+//
+//  Author: Wassn Al Nabhan - 101468092
+//  Co-editor: Gabriel Aparicio - 101419420
+//  Changes by co-editor: Added reminder editing, validation logic, notification updates, and persistent save support.
+//  External assistance note:
+//  Reminder validation, task update flow, and save logic in this file were developed with AI guidance,
+//  then reviewed, tested, and understood by the project team.
+//
+
 import SwiftUI
 
 struct EditTaskSheet: View {
@@ -29,6 +41,7 @@ struct EditTaskSheet: View {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         
+        // Converts saved string values back into Date objects so they can be edited with DatePickers.
         let parsedDueDate = formatter.date(from: task.dueDate) ?? Date()
         let parsedFirstReminder = formatter.date(from: task.firstReminder) ?? Date()
         let parsedSecondReminder = formatter.date(from: task.secondReminder) ?? Date()
@@ -109,6 +122,7 @@ struct EditTaskSheet: View {
         }
     }
     
+    // Validates edited task data, updates the selected task, reschedules reminders, and saves changes.
     private func saveChanges() {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -126,6 +140,7 @@ struct EditTaskSheet: View {
             return
         }
    
+        // Ensures reminders are scheduled before the task due date and in logical order.
         guard firstReminderDate < selectedDueDate else {
             validationMessage = "The first reminder must be before the due date."
             showValidationAlert = true
@@ -169,6 +184,7 @@ struct EditTaskSheet: View {
             reminderDate: secondReminderDate,
             reminderLabel: "Second Reminder"
         )
+        
         appData.saveTasks()
         dismiss()
     }

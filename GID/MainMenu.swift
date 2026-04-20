@@ -1,3 +1,15 @@
+//
+//  MainMenuView.swift
+//  GID! (Get It Done!)
+//
+//  Author: Wassn Al Nabhan - 101468092
+//  Co-editor: Gabriel Aparicio - 101419420
+//  Changes by co-editor: Added due-today reminder logic, completion update handling, and menu/navigation refinements.
+//  External assistance note:
+//  Due-today reminder logic in this file was developed with AI guidance,
+//  then reviewed, tested, and understood by the project team.
+//
+
 import SwiftUI
 
 struct MainMenuView: View {
@@ -116,6 +128,7 @@ struct MainMenuView: View {
         }
     }
     
+    // Finds incomplete tasks due today and prepares them to be shown in reminder alerts.
     private func loadDueTodayTasks() {
         let calendar = Calendar.current
         let formatter = DateFormatter()
@@ -142,6 +155,7 @@ struct MainMenuView: View {
         }
     }
     
+    // Shows the next due-today reminder if more tasks still need attention.
     private func showNextDueTask() {
         showDueTodayAlert = false
         

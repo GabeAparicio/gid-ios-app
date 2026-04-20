@@ -1,3 +1,15 @@
+//
+//  AddTaskView.swift
+//  GID! (Get It Done!)
+//
+//  Author: Gabriel Aparicio - 101419420
+//  Co-editor: Wassn Al Nabhan - 101468092
+//  Changes by co-editor: Assisted with UI layout, reminder fields, and task input flow.
+//  External assistance note:
+//  Validation logic and reminder-handling logic in this file were developed with AI guidance,
+//  then reviewed, tested, and understood by the project team.
+//
+
 import SwiftUI
 
 struct AddTaskView: View {
@@ -198,6 +210,7 @@ struct AddTaskView: View {
         }
     }
     
+    // Validates task input, creates a new task, and schedules reminder notifications.
     private func saveTask() {
         let trimmedTitle = taskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedDescription = taskDescription.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -215,6 +228,7 @@ struct AddTaskView: View {
             return
         }
         
+        // Reminder times must be scheduled before the task due date.
         guard firstReminderDate < selectedDueDate else {
             validationMessage = "The first reminder must be before the due date."
             showValidationAlert = true

@@ -1,8 +1,23 @@
+//
+//  AppData.swift
+//  GID! (Get It Done!)
+//
+//  Author: Gabriel Aparicio - 101419420
+//  Co-editor: Wassn Al Nabhan - 101468092
+//  Changes by co-editor: Added sample starter tasks and assisted with app data flow/testing.
+//  External assistance note:
+//  Persistence logic using UserDefaults and Codable was developed with AI guidance,
+//  then reviewed, tested, and understood by the project team.
+//
+
 import Foundation
 import SwiftUI
 import Combine
 
+// AppData stores the shared task list for the app and keeps track of the currently selected task.
 class AppData: ObservableObject {
+    
+    // Whenever the task list changes, it is automatically saved to local storage.
     @Published var tasks: [Task] = [] {
         didSet {
             saveTasks()
@@ -11,11 +26,13 @@ class AppData: ObservableObject {
     
     @Published var selectedTask: Task?
     
+    // Key used to store and retrieve task data from UserDefaults.
     private let tasksKey = "saved_tasks"
     
     init() {
         loadTasks()
         
+        // If no saved tasks exist yet, preload the app with sample tasks.
         if tasks.isEmpty {
             tasks = [
                 Task(
@@ -40,6 +57,7 @@ class AppData: ObservableObject {
         }
     }
     
+    // Encodes the task array and saves it to UserDefaults for persistence between app launches.
     func saveTasks() {
         do {
             let encoded = try JSONEncoder().encode(tasks)
@@ -49,6 +67,7 @@ class AppData: ObservableObject {
         }
     }
     
+    // Loads previously saved tasks from UserDefaults when the app starts.
     func loadTasks() {
         guard let data = UserDefaults.standard.data(forKey: tasksKey) else { return }
         

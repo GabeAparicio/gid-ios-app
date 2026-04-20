@@ -1,3 +1,15 @@
+//
+//  TaskDetailsView.swift
+//  GID! (Get It Done!)
+//
+//  Author: Wassn Al Nabhan - 101468092
+//  Co-editor: Gabriel Aparicio - 101419420
+//  Changes by co-editor: Added edit sheet support, delete functionality, and back navigation improvements.
+//  External assistance note:
+//  Some task management logic in this file was developed with AI guidance,
+//  then reviewed, tested, and understood by the project team.
+//
+
 import SwiftUI
 
 struct TaskDetailsView: View {
@@ -125,11 +137,13 @@ struct TaskDetailsView: View {
                     .padding(.bottom, 16)
             }
         }
+        // Opens the edit sheet for the selected task.
         .sheet(item: $editingTask) { task in
             EditTaskSheet(task: task, appData: appData)
         }
     }
     
+    // Removes the selected task from the task list and collapses it if it was expanded.
     private func deleteTask(_ task: Task) {
         appData.tasks.removeAll { $0.id == task.id }
         
